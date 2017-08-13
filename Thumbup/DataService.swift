@@ -91,18 +91,39 @@ class DataService {
         
     }
     
-    func userIsOnTrip(passengerKey: String, handler: @escaping (_ status: Bool?, _ driverKey: String?, _ tripKey: String?) -> Void){
+    func passengerIsOnTrip(passengerKey: String, handler: @escaping (_ status: Bool?, _ driverKey: String?, _ tripKey: String?) -> Void){
         
         DataService.instance.REF_TRIPS.observeSingleEvent(of: .value, with: { (tripSnapshot) in
             if let tripSnapshot = tripSnapshot.children.allObjects as? [DataSnapshot] {
                 for trip in tripSnapshot {
                     if trip.key == passengerKey {
-                        if trip.childSnapshot(forPath: <#T##String#>)
+                        if trip.childSnapshot(forPath: "tripIsAccepted").value as? Bool == true {
+                            let driverKey = trip.childSnapshot(forPath: "driverKey").value as? String
+                            handler(true, driverKey, trip.key)
+                        }else {
+                            handler(false, nil, nil)
+                        }
                     }
                 }
             }
-        }
+        })
     }
     
+    func userIsDriver(userKey: String, handler: @escaping (_ status: Bool) -> Void) {
+        
+        DataService.instance.REF_DRIVERS.observeSingleEvent(of: .value, with: { (driverSnapshot) in
+            
+            if let driverSnapshot = driverSnapshot.children.allObjects as? [DataSnapshot] {
+                for driver in driverSnapshot {
+                    if driver.key == userKey {
+                        handler(true)
+                    } else {
+                        handler(false)
+                    }
+                }
+            }
+        })
+        
+    }
     
 }
